@@ -48,6 +48,11 @@ jobs:
       - name: Apply native Shadow mod
         run: python3 shadow_mod/apply_shadow_mod.py
 
+      - name: Fix Amy slot character bit for native build
+        run: |
+          sed -i 's/CHARACTER_BIT(CHARACTER_AMY)/(1 << CHARACTER_AMY)/g' src/game/sa2/ui/character_select.c
+          ! grep -q 'CHARACTER_BIT(CHARACTER_AMY)' src/game/sa2/ui/character_select.c
+
       - name: Pre-create graphics build directories
         run: |
           python3 - <<'PY'
