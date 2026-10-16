@@ -46,8 +46,17 @@ jobs:
       - name: Apply native Shadow mod
         run: python3 shadow_mod/apply_shadow_mod.py
 
+      - name: Pre-create graphics build directories
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for d in Path('graphics/sa2/obj_tiles/4bpp').glob('anim_*'):
+              if d.is_dir():
+                  Path('build/gba/sa2', d).mkdir(parents=True, exist_ok=True)
+          PY
+
       - name: Build GBA ROM
-        run: make -j"$(nproc)" COMPARE=0
+        run: make COMPARE=0
 
       - name: Verify ROM output
         run: |
