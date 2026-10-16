@@ -62,8 +62,8 @@ jobs:
                   Path('build/gba/sa2', d).mkdir(parents=True, exist_ok=True)
           PY
 
-      - name: Build GBA ROM
-        run: make COMPARE=0
+      - name: Build modified GBA ROM
+        run: make rom COMPARE=0
 
       - name: Verify ROM output
         run: |
