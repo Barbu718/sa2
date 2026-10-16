@@ -45,6 +45,19 @@ jobs:
           assert im.size == (640, 576)
           PY
 
+      - name: Normalize patcher palettes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('shadow_mod/apply_shadow_mod.py')
+          s=p.read_text()
+          old='pal=original.getpalette(); trans=original.info.get("transparency",0)'
+          new='pal=list(original.getpalette() or []); pal=(pal+[0]*768)[:768]; trans=original.info.get("transparency",0)'
+          if old not in s:
+              raise SystemExit('expected palette line not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+
       - name: Apply native Shadow mod
         run: python3 shadow_mod/apply_shadow_mod.py
 
