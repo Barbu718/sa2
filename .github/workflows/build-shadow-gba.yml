@@ -3,6 +3,8 @@ name: Build Shadow GBA ROM
 on:
   push:
     branches: [shadow-gba]
+  pull_request:
+    branches: [shadow-gba]
   workflow_dispatch:
 
 jobs:
