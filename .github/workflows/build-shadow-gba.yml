@@ -1,0 +1,63 @@
+name: Build Shadow GBA ROM
+
+on:
+  push:
+    branches: [shadow-gba]
+  workflow_dispatch:
+
+jobs:
+  build-shadow-gba:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Shadow branch
+        uses: actions/checkout@v4
+
+      - name: Checkout agbcc
+        uses: actions/checkout@v4
+        with:
+          path: agbcc
+          repository: SAT-R/agbcc
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi libpng-dev
+          python3 -m pip install --break-system-packages pillow
+
+      - name: Install agbcc
+        working-directory: agbcc
+        run: |
+          ./build.sh
+          ./install.sh ../
+
+      - name: Reconstruct Shadow art atlas
+        run: |
+          cat shadow_mod/shadow_atlas.b64.* | tr -d '\n\r' | base64 -d > shadow_mod/shadow_atlas.png
+          python3 - <<'PY'
+          from PIL import Image
+          p='shadow_mod/shadow_atlas.png'
+          im=Image.open(p)
+          print('Shadow atlas:', im.size, im.mode)
+          assert im.size == (640, 576)
+          PY
+
+      - name: Apply native Shadow mod
+        run: python3 shadow_mod/apply_shadow_mod.py
+
+      - name: Build GBA ROM
+        run: make -j"$(nproc)" COMPARE=0
+
+      - name: Verify ROM output
+        run: |
+          test -s sa2.gba
+          ls -lh sa2.gba
+          sha1sum sa2.gba
+
+      - name: Upload playable ROM
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sonic-Advance-2-Shadow-GBA
+          path: sa2.gba
+          if-no-files-found: error
